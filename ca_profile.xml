@@ -1,0 +1,9 @@
+<CommunityApplications>
+  <Profile>
+BisqFTS: Bisq, the decentralized bitcoin exchange, in a container used from a web browser or a VNC client. The image installs the official Bisq release after verifying its PGP signature against pinned signer fingerprints, and GitHub Actions builds new Bisq releases automatically.
+
+Source, documentation and support: https://github.com/jaclas/bisqfts (please report problems as GitHub issues).
+  </Profile>
+  <Icon>https://raw.githubusercontent.com/bisq-network/bisq/v1.10.12/desktop/package/macosx/Bisq.iconset/icon_512x512.png</Icon>
+  <WebPage>https://github.com/jaclas/bisqfts</WebPage>
+</CommunityApplications>

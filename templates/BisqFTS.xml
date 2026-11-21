@@ -4,26 +4,21 @@
   <Repository>ghcr.io/jaclas/bisqfts:latest</Repository>
   <Registry>https://github.com/jaclas/bisqfts/pkgs/container/bisqfts</Registry>
   <Network>bridge</Network>
-  <MyIP/>
   <Shell>bash</Shell>
   <Privileged>false</Privileged>
-  <Support/>
-  <Project>https://bisq.network</Project>
-  <Overview>Bisq, the decentralized bitcoin exchange, used from a web browser or a VNC client. All Bisq data (wallet, DAO state, bisq.properties, logs) is in /config/bisq.</Overview>
-  <Category/>
+  <Support>https://github.com/jaclas/bisqfts/issues</Support>
+  <Project>https://github.com/jaclas/bisqfts</Project>
+  <TemplateURL>https://raw.githubusercontent.com/jaclas/bisqfts/main/templates/BisqFTS.xml</TemplateURL>
+  <ReadMe>https://raw.githubusercontent.com/jaclas/bisqfts/main/README.md</ReadMe>
+  <Overview>Bisq (https://bisq.network), the decentralized bitcoin exchange, used from a web browser or a VNC client. The image installs the official Bisq release after verifying its PGP signature, and GitHub Actions builds new Bisq releases automatically. All Bisq data (wallet, keys, DAO state, bisq.properties, logs) is in /config/bisq; back it up before an update to a new Bisq version. Set a VNC password: it protects the web interface and VNC. Bisq takes 50 % of the memory limit in Extra Parameters as the Java heap.</Overview>
+  <Requires>On Unraid the Tor sandbox of Bisq is not available, because the Unraid kernel (checked on 7.3.3) has no Landlock. At the first start Bisq shows "Tor cannot run with sandbox protection": click "Turn off the sandbox and shut down", then start the container again.</Requires>
+  <Category>Crypto: Network:Other</Category>
   <WebUI>http://[IP]:[PORT:5800]/</WebUI>
-  <TemplateURL/>
   <Icon>https://raw.githubusercontent.com/bisq-network/bisq/v1.10.12/desktop/package/macosx/Bisq.iconset/icon_512x512.png</Icon>
   <ExtraParams>--memory=8g</ExtraParams>
-  <PostArgs/>
-  <CPUset/>
-  <DateInstalled/>
-  <DonateText/>
-  <DonateLink/>
-  <Requires/>
   <Config Name="Web UI" Target="5800" Default="5808" Mode="tcp" Description="Web interface" Type="Port" Display="always" Required="true" Mask="false">5808</Config>
   <Config Name="VNC" Target="5900" Default="5908" Mode="tcp" Description="VNC client" Type="Port" Display="always" Required="false" Mask="false">5908</Config>
-  <Config Name="Config Directory" Target="/config" Default="/mnt/ssdraid/ssdappdata/bisqfts" Mode="rw" Description="Container data; the data of Bisq is in the subdirectory bisq" Type="Path" Display="always" Required="true" Mask="false">/mnt/ssdraid/ssdappdata/bisqfts</Config>
+  <Config Name="Config Directory" Target="/config" Default="/mnt/user/appdata/bisqfts" Mode="rw" Description="Container data; the data of Bisq is in the subdirectory bisq" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/bisqfts</Config>
   <Config Name="User ID" Target="USER_ID" Default="99" Mode="" Description="nobody" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
   <Config Name="Group ID" Target="GROUP_ID" Default="100" Mode="" Description="users" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
   <Config Name="Umask" Target="UMASK" Default="0077" Mode="" Description="New files 600, directories 700" Type="Variable" Display="advanced" Required="true" Mask="false">0077</Config>

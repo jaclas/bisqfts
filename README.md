@@ -80,8 +80,9 @@ stopped.
 
 ## Unraid
 
-1. Template `unraid/my-BisqFTS.xml` to `/boot/config/plugins/dockerMan/templates-user/`,
-   then **Docker → Add Container → BisqFTS → Apply**. Unraid pulls the image from `ghcr.io`.
+1. Template `templates/BisqFTS.xml` to
+   `/boot/config/plugins/dockerMan/templates-user/my-BisqFTS.xml`, then
+   **Docker → Add Container → BisqFTS → Apply**. Unraid pulls the image from `ghcr.io`.
 2. A new image under `latest` shows up on the Docker page as an available update; the update
    button pulls it and recreates the container. Back up `/config/bisq` first when the Bisq
    version changes.
