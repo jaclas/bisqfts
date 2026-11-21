@@ -60,6 +60,8 @@ RUN --mount=type=bind,from=fetch,source=/fetch/bisq.deb,target=/tmp/bisq.deb \
 RUN install_app_icon.sh "https://raw.githubusercontent.com/bisq-network/bisq/v${BISQ_VERSION}/desktop/package/macosx/Bisq.iconset/icon_512x512.png"
 
 COPY --chmod=0755 startapp.sh /startapp.sh
+# etc/openbox/main-window-selection.xml limits the base image's rule (maximized, no decorations)
+# to the main window: the dialogs of Bisq are windows of the same class with an empty title.
 COPY rootfs/ /
 RUN chmod 0755 /etc/services.d/bisq-maximize/run
 
