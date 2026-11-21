@@ -1,80 +1,90 @@
 # BisqFTS
 
-Obraz Dockera z aplikacją [Bisq](https://bisq.network) (zdecentralizowana giełda bitcoina),
-obsługiwaną z przeglądarki albo z klienta VNC. Podstawa: `jlesage/baseimage-gui` (Debian 13).
+A Docker image of [Bisq](https://bisq.network), the decentralized bitcoin exchange, used from a
+web browser or a VNC client. Base image: `jlesage/baseimage-gui` (Debian 13).
 
-## Budowa
+## Build
 
 ```
 docker build -t bisqfts:1.10.12 .
 ```
 
-Inna wersja Bisqa:
+Another Bisq version:
 
 ```
 docker build --build-arg BISQ_VERSION=1.10.13 -t bisqfts:1.10.13 .
 ```
 
-Budowa pobiera pakiet `.deb` z wydania Bisqa na GitHubie i sprawdza jego podpis. Przyjmuje tylko
-podpis kluczem, którego pełny odcisk jest na liście `BISQ_SIGNER_FPRS` w `Dockerfile`. Podpis
-innym kluczem przerywa budowę: nowy klucz Bisqa dopisuje się do listy dopiero po sprawdzeniu.
+The build downloads the `.deb` package from the Bisq release on GitHub and verifies its
+signature. It accepts only a signature made by a key whose full fingerprint is listed in
+`BISQ_SIGNER_FPRS` in the `Dockerfile`. A signature by any other key stops the build: a new Bisq
+signing key is added to the list only after its fingerprint has been checked.
 
-## Uruchomienie
+## Run
 
 ```
-docker run -d --name bisqfts -p 5800:5800 -p 5900:5900 -e USER_ID=99 -e GROUP_ID=100 -e UMASK=0077 -e VNC_PASSWORD=haslo --memory=8g --stop-timeout=60 -v /sciezka/do/danych:/config bisqfts:1.10.12
+docker run -d --name bisqfts -p 5800:5800 -p 5900:5900 -e USER_ID=99 -e GROUP_ID=100 -e UMASK=0077 -e VNC_PASSWORD=secret --memory=8g --stop-timeout=60 -v /path/to/data:/config bisqfts:1.10.12
 ```
 
-GUI: `http://<host>:5800` w przeglądarce albo `<host>:5900` w kliencie VNC.
+GUI: `http://<host>:5800` in a web browser, or `<host>:5900` in a VNC client.
 
-| Parametr | Znaczenie |
+| Parameter | Meaning |
 |---|---|
-| `USER_ID`, `GROUP_ID` | właściciel plików w `/config`; na Unraidzie `99` (`nobody`) i `100` (`users`) |
-| `UMASK` | `0077`: nowe pliki 600, katalogi 700, portfel czyta tylko właściciel |
-| `VNC_PASSWORD` | hasło do GUI (przeglądarka i VNC); ustawiać zawsze, patrz „Tor” |
-| `--memory` | limit pamięci; Bisq bierze na stertę Javy 50 % limitu, bez limitu połowę pamięci hosta |
-| `--stop-timeout` | co najmniej 30 s: tyle Bisq dostaje na zamknięcie portfela i Tora |
-| `JAVA_TOOL_OPTIONS` | dodatkowe opcje Javy, np. `-Xmx3g`; mają pierwszeństwo przed opcjami obrazu |
+| `USER_ID`, `GROUP_ID` | owner of the files in `/config`; on Unraid `99` (`nobody`) and `100` (`users`) |
+| `UMASK` | `0077`: new files 600, directories 700, so only the owner can read the wallet |
+| `VNC_PASSWORD` | password of the GUI (web browser and VNC); always set it, see "Tor" |
+| `--memory` | memory limit; Bisq takes 50 % of the limit for the Java heap, without a limit half of the host's memory |
+| `--stop-timeout` | at least 30 s: the time Bisq gets to close the wallet and Tor |
+| `JAVA_TOOL_OPTIONS` | additional Java options, e.g. `-Xmx3g`; they take precedence over the options of the image |
 
-## Dane
+## Data
 
-| Katalog | Zawartość |
+| Directory | Contents |
 |---|---|
-| `/config/bisq` | wszystko, co należy do Bisqa: portfel, stan DAO, `bisq.properties`, logi (`--appDataDir`) |
-| `/config/xdg`, `/config/log`, `/config/var` | ustawienia GUI i usług obrazu; odtwarzają się same |
+| `/config/bisq` | everything that belongs to Bisq: wallet, DAO state, `bisq.properties`, logs (`--appDataDir`) |
+| `/config/xdg`, `/config/log`, `/config/var` | settings of the GUI and of the image's services; they are recreated |
 
-Kopia zapasowa portfela to kopia `/config/bisq` przy zatrzymanym kontenerze.
+A backup of the Bisq account is a copy of `/config/bisq` made while the container is stopped.
 
-## Ekran
+## Display
 
-Interfejs WWW dopasowuje ekran kontenera do okna przeglądarki (w panelu po lewej
-**Scaling mode → Remote Resizing**), a usługa `bisq-maximize` trzyma okno Bisqa zmaksymalizowane,
-więc idzie ono za rozmiarem przeglądarki. Gdy okno przeglądarki jest mniejsze niż minimalne okno
-Bisqa (1020×619), interfejs domyślnie skaluje obraz. Wybór w panelu zapamiętuje przeglądarka.
+The web interface resizes the container's screen to the browser window (in the left panel
+**Scaling mode → Remote Resizing**), and the service `bisq-maximize` keeps the Bisq window
+maximized, so it follows the size of the browser. When the browser window is smaller than the
+minimum Bisq window (1020×619), the web interface scales the picture by default. The browser
+remembers the choice made in the panel.
 
 ## Tor
 
-Bisq uruchamia Tora w piaskownicy `sandy`. W kontenerze z domyślnymi ustawieniami Dockera
-piaskownica działa na poziomie `host-network` (jądro 6.12 lub nowsze) albo `host-network-signals`
-(starsze): Tor nie czyta plików portfela, ale może łączyć się z usługami w sieci kontenera, w tym
-z VNC tego kontenera, i w sieci lokalnej. Dlatego `VNC_PASSWORD` jest potrzebne zawsze. Najwyższy
-poziom, z własną siecią Tora, wymaga zgody kontenera na przestrzenie nazw użytkownika; ten obraz
-go nie włącza.
+Bisq runs Tor in its sandbox `sandy`. In a container with Docker's default settings the sandbox
+runs at the level `host-network` (kernel 6.12 or newer) or `host-network-signals` (older
+kernels): Tor cannot read the wallet's files, but it can connect to services in the container's
+network, including this container's VNC, and in the local network. That is why `VNC_PASSWORD` is
+always needed. The highest level, with a network of Tor's own, needs the container to be allowed
+to create user namespaces; this image does not enable that.
 
-Piaskownica wymaga w jądrze hosta modułu Landlock. Jądro bez niego (np. Unraid 7.3.3, zbudowany
-bez `CONFIG_SECURITY`) nie da piaskownicy na żadnym poziomie: Bisq nie uruchamia wtedy Tora
-(`SandboxUnavailableException` w `/config/bisq/bisq.log`) i proponuje przycisk **Turn off the
-sandbox and shut down**. Przycisk dopisuje `useTorSandbox=false` do `/config/bisq/bisq.properties`
-i zamyka Bisqa; po ponownym uruchomieniu kontenera Tor działa bez piaskownicy, jak w Bisqu do
-1.10.10, z dostępem do wszystkich plików kontenera, także portfela. Gdy host dostanie Landlock,
-usunąć tę linię przy zatrzymanym kontenerze.
+The sandbox needs the Landlock module in the host's kernel. A kernel without it (e.g. Unraid
+7.3.3, built without `CONFIG_SECURITY`) cannot give the sandbox at any level: Bisq then does not
+start Tor (`SandboxUnavailableException` in `/config/bisq/bisq.log`) and offers the button
+**Turn off the sandbox and shut down**. The button adds `useTorSandbox=false` to
+`/config/bisq/bisq.properties` and closes Bisq; after the container is started again, Tor runs
+without the sandbox, as in Bisq up to 1.10.10, with access to all files of the container,
+including the wallet. When the host gets Landlock, remove that line while the container is
+stopped.
 
 ## Unraid
 
-1. Obraz na serwer: `docker save bisqfts:1.10.12 | ssh <serwer> docker load`.
-2. Szablon `unraid/my-BisqFTS.xml` do `/boot/config/plugins/dockerMan/templates-user/`,
-   potem **Docker → Add Container → BisqFTS → Apply**.
-3. Nowa wersja: obraz z nowym tagiem na serwer, zmiana tagu w polu **Repository**, **Apply**.
-   Przycisk aktualizacji Unraida zawsze próbuje pobrać obraz z rejestru, więc tu nie działa.
-4. Nowy obraz pod tym samym tagiem: na serwer, potem **Edit → Apply**. **Restart** zostawia
-   kontener na poprzednim obrazie.
+1. Image to the server: `docker save bisqfts:1.10.12 | ssh <server> docker load`.
+2. Template `unraid/my-BisqFTS.xml` to `/boot/config/plugins/dockerMan/templates-user/`,
+   then **Docker → Add Container → BisqFTS → Apply**.
+3. New version: image with a new tag to the server, new tag in the field **Repository**,
+   **Apply**. Unraid's update button always tries to pull the image from a registry, so it does
+   not work here.
+4. New image under the same tag: to the server, then **Edit → Apply**. **Restart** keeps the
+   container on the previous image.
+
+## License
+
+The files of this repository are under the MIT license (`LICENSE`). Bisq, which the image
+installs, is under the GNU AGPL-3.0; the base image `jlesage/baseimage-gui` is under the MIT
+license.
