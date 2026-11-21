@@ -61,6 +61,14 @@ z VNC tego kontenera, i w sieci lokalnej. Dlatego `VNC_PASSWORD` jest potrzebne 
 poziom, z własną siecią Tora, wymaga zgody kontenera na przestrzenie nazw użytkownika; ten obraz
 go nie włącza.
 
+Piaskownica wymaga w jądrze hosta modułu Landlock. Jądro bez niego (np. Unraid 7.3.3, zbudowany
+bez `CONFIG_SECURITY`) nie da piaskownicy na żadnym poziomie: Bisq nie uruchamia wtedy Tora
+(`SandboxUnavailableException` w `/config/bisq/bisq.log`) i proponuje przycisk **Turn off the
+sandbox and shut down**. Przycisk dopisuje `useTorSandbox=false` do `/config/bisq/bisq.properties`
+i zamyka Bisqa; po ponownym uruchomieniu kontenera Tor działa bez piaskownicy, jak w Bisqu do
+1.10.10, z dostępem do wszystkich plików kontenera, także portfela. Gdy host dostanie Landlock,
+usunąć tę linię przy zatrzymanym kontenerze.
+
 ## Unraid
 
 1. Obraz na serwer: `docker save bisqfts:1.10.12 | ssh <serwer> docker load`.
@@ -68,3 +76,5 @@ go nie włącza.
    potem **Docker → Add Container → BisqFTS → Apply**.
 3. Nowa wersja: obraz z nowym tagiem na serwer, zmiana tagu w polu **Repository**, **Apply**.
    Przycisk aktualizacji Unraida zawsze próbuje pobrać obraz z rejestru, więc tu nie działa.
+4. Nowy obraz pod tym samym tagiem: na serwer, potem **Edit → Apply**. **Restart** zostawia
+   kontener na poprzednim obrazie.
