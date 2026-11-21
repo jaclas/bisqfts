@@ -1,0 +1,103 @@
+name: Build and publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - startapp.sh
+      - rootfs/**
+      - .dockerignore
+      - .github/workflows/build.yml
+  workflow_dispatch:
+    inputs:
+      bisq_version:
+        description: Bisq version to build, e.g. 1.10.12; empty builds the latest release
+        required: false
+  schedule:
+    # Daily check for a new Bisq release; a scheduled run builds only a version that is not
+    # in the registry yet.
+    - cron: '23 4 * * *'
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/bisqfts
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Resolve the Bisq version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_VERSION: ${{ inputs.bisq_version }}
+        run: |
+          set -eu
+          latest="$(gh api repos/bisq-network/bisq/releases/latest --jq .tag_name)"
+          latest="${latest#v}"
+          version="${INPUT_VERSION:-${latest}}"
+          version="${version#v}"
+          for v in "${latest}" "${version}"; do
+            case "${v}" in ''|*[!0-9.]*) echo "Invalid Bisq version: '${v}'" >&2; exit 1 ;; esac
+          done
+          # Only the latest release moves the tag latest, so rebuilding an older version
+          # does not roll it back.
+          tags="${IMAGE}:${version}"
+          if [ "${version}" = "${latest}" ]; then
+            tags="${tags},${IMAGE}:latest"
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "tags=${tags}" >> "${GITHUB_OUTPUT}"
+
+      - name: Log in to the GitHub Container Registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ github.token }}
+
+      - name: Check whether a scheduled run has anything to build
+        id: check
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = schedule ] && docker manifest inspect "${IMAGE}:${VERSION}" > /dev/null 2>&1; then
+            echo "build=false" >> "${GITHUB_OUTPUT}"
+            echo "${IMAGE}:${VERSION} is published already." >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "build=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.check.outputs.build == 'true'
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        if: steps.check.outputs.build == 'true'
+
+      # No build cache: every build installs the current Debian packages.
+      - name: Build and push
+        if: steps.check.outputs.build == 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          pull: true
+          push: true
+          build-args: BISQ_VERSION=${{ steps.version.outputs.version }}
+          tags: ${{ steps.version.outputs.tags }}
+
+      - name: Summary
+        if: steps.check.outputs.build == 'true'
+        env:
+          TAGS: ${{ steps.version.outputs.tags }}
+        run: echo "Published ${TAGS}" >> "${GITHUB_STEP_SUMMARY}"

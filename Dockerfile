@@ -79,7 +79,8 @@ RUN set-cont-env APP_NAME "Bisq" \
 LABEL org.opencontainers.image.title="BisqFTS" \
       org.opencontainers.image.description="Bisq desktop application, accessible from a web browser or a VNC client" \
       org.opencontainers.image.version="${BISQ_VERSION}" \
-      org.opencontainers.image.url="https://bisq.network"
+      org.opencontainers.image.url="https://bisq.network" \
+      org.opencontainers.image.source="https://github.com/jaclas/bisqfts"
 
 VOLUME ["/config"]
 EXPOSE 5800 5900
