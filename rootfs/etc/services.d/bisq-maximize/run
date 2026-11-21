@@ -1,0 +1,18 @@
+#!/bin/sh
+# Bisq sets the bounds of its main window itself (the initial size centered on the screen, or
+# the bounds saved at the last run), which overrides the window manager's rule to maximize it.
+# A maximized window follows the screen, which the web interface resizes to the browser window.
+# Adding the maximized state to a window which has it already changes nothing.
+
+set -u
+
+CLASS="bisq.desktop.app.BisqApp.bisq.desktop.app.BisqApp"
+
+while :; do
+    wmctrl -l -x 2>/dev/null \
+        | awk -v class="${CLASS}" '$3 == class && $5 ~ /^Bisq/ { print $1 }' \
+        | while read -r id; do
+            wmctrl -i -r "${id}" -b add,maximized_vert,maximized_horz 2>/dev/null
+        done
+    sleep 2
+done

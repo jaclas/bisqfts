@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>BisqFTS</Name>
+  <Repository>bisqfts:1.10.12</Repository>
+  <Registry/>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project>https://bisq.network</Project>
+  <Overview>Bisq w przeglądarce albo przez VNC. Dane Bisqa (portfel, stan DAO, bisq.properties, logi) w /config/bisq.</Overview>
+  <Category/>
+  <WebUI>http://[IP]:[PORT:5800]/</WebUI>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/bisq-network/bisq/v1.10.12/desktop/package/macosx/Bisq.iconset/icon_512x512.png</Icon>
+  <ExtraParams>--memory=8g</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Web UI" Target="5800" Default="5808" Mode="tcp" Description="Interfejs w przeglądarce" Type="Port" Display="always" Required="true" Mask="false">5808</Config>
+  <Config Name="VNC" Target="5900" Default="5908" Mode="tcp" Description="Klient VNC" Type="Port" Display="always" Required="false" Mask="false">5908</Config>
+  <Config Name="Config Directory" Target="/config" Default="/mnt/ssdraid/ssdappdata/bisqfts" Mode="rw" Description="Dane kontenera; Bisq w podkatalogu bisq" Type="Path" Display="always" Required="true" Mask="false">/mnt/ssdraid/ssdappdata/bisqfts</Config>
+  <Config Name="User ID" Target="USER_ID" Default="99" Mode="" Description="nobody" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+  <Config Name="Group ID" Target="GROUP_ID" Default="100" Mode="" Description="users" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="Umask" Target="UMASK" Default="0077" Mode="" Description="Nowe pliki 600, katalogi 700" Type="Variable" Display="advanced" Required="true" Mask="false">0077</Config>
+  <Config Name="VNC password" Target="VNC_PASSWORD" Default="" Mode="" Description="Hasło do GUI (przeglądarka i VNC), wymagane" Type="Variable" Display="always" Required="true" Mask="true"/>
+</Container>
