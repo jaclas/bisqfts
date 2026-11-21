@@ -3,17 +3,22 @@
 A Docker image of [Bisq](https://bisq.network), the decentralized bitcoin exchange, used from a
 web browser or a VNC client. Base image: `jlesage/baseimage-gui` (Debian 13).
 
-## Build
+## Image
 
 ```
-docker build -t bisqfts:1.10.12 .
+ghcr.io/jaclas/bisqfts:latest
+ghcr.io/jaclas/bisqfts:<Bisq version>
 ```
 
-Another Bisq version:
+GitHub Actions builds the image from this repository (`.github/workflows/build.yml`) for
+`linux/amd64`, the only architecture Bisq publishes a Linux package for:
 
-```
-docker build --build-arg BISQ_VERSION=1.10.13 -t bisqfts:1.10.13 .
-```
+- on every change to the files of the image, for the latest Bisq release;
+- once a day, when Bisq has a release that is not in the registry yet;
+- on manual dispatch, for any Bisq version.
+
+The tag `latest` moves only with the latest Bisq release. Every build installs the current
+Debian packages; there is no build cache.
 
 The build downloads the `.deb` package from the Bisq release on GitHub and verifies its
 signature. It accepts only a signature made by a key whose full fingerprint is listed in
@@ -23,7 +28,7 @@ signing key is added to the list only after its fingerprint has been checked.
 ## Run
 
 ```
-docker run -d --name bisqfts -p 5800:5800 -p 5900:5900 -e USER_ID=99 -e GROUP_ID=100 -e UMASK=0077 -e VNC_PASSWORD=secret --memory=8g --stop-timeout=60 -v /path/to/data:/config bisqfts:1.10.12
+docker run -d --name bisqfts -p 5800:5800 -p 5900:5900 -e USER_ID=99 -e GROUP_ID=100 -e UMASK=0077 -e VNC_PASSWORD=secret --memory=8g --stop-timeout=60 -v /path/to/data:/config ghcr.io/jaclas/bisqfts:latest
 ```
 
 GUI: `http://<host>:5800` in a web browser, or `<host>:5900` in a VNC client.
@@ -45,6 +50,7 @@ GUI: `http://<host>:5800` in a web browser, or `<host>:5900` in a VNC client.
 | `/config/xdg`, `/config/log`, `/config/var` | settings of the GUI and of the image's services; they are recreated |
 
 A backup of the Bisq account is a copy of `/config/bisq` made while the container is stopped.
+Make one before an update to a new Bisq version.
 
 ## Display
 
@@ -74,14 +80,19 @@ stopped.
 
 ## Unraid
 
-1. Image to the server: `docker save bisqfts:1.10.12 | ssh <server> docker load`.
-2. Template `unraid/my-BisqFTS.xml` to `/boot/config/plugins/dockerMan/templates-user/`,
-   then **Docker → Add Container → BisqFTS → Apply**.
-3. New version: image with a new tag to the server, new tag in the field **Repository**,
-   **Apply**. Unraid's update button always tries to pull the image from a registry, so it does
-   not work here.
-4. New image under the same tag: to the server, then **Edit → Apply**. **Restart** keeps the
-   container on the previous image.
+1. Template `unraid/my-BisqFTS.xml` to `/boot/config/plugins/dockerMan/templates-user/`,
+   then **Docker → Add Container → BisqFTS → Apply**. Unraid pulls the image from `ghcr.io`.
+2. A new image under `latest` shows up on the Docker page as an available update; the update
+   button pulls it and recreates the container. Back up `/config/bisq` first when the Bisq
+   version changes.
+
+## Build locally
+
+```
+docker build -t bisqfts:1.10.12 .
+```
+
+Another Bisq version: `docker build --build-arg BISQ_VERSION=1.10.13 -t bisqfts:1.10.13 .`
 
 ## License
 
