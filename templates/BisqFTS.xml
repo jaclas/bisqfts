@@ -6,7 +6,7 @@
   <Network>bridge</Network>
   <Shell>bash</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/jaclas/bisqfts/issues</Support>
+  <Support>https://forums.unraid.net/topic/201370-support-jaclas-bisqfts-bisq-the-decentralized-bitcoin-exchange/</Support>
   <Project>https://github.com/jaclas/bisqfts</Project>
   <TemplateURL>https://raw.githubusercontent.com/jaclas/bisqfts/main/templates/BisqFTS.xml</TemplateURL>
   <ReadMe>https://raw.githubusercontent.com/jaclas/bisqfts/main/README.md</ReadMe>
